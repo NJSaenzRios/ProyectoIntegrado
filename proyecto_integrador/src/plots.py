@@ -8,25 +8,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import matplotlib
+import matplotlib.dates as mdates
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import matplotlib
 
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import matplotlib
-
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import matplotlib
 
 def plot_revenue_by_month_year(df: DataFrame, year: int):
     """Plot revenue by month in a given year
@@ -37,9 +21,9 @@ def plot_revenue_by_month_year(df: DataFrame, year: int):
     """
     
     # Filtrar el DataFrame para mostrar solo el año seleccionado
-    df_filtered = df[["month_no", f"Year{year}"]].dropna()  # Elimina valores nulos si los hay
+    df_filtered = df[["month", f"Year{year}"]].dropna()  # Elimina valores nulos si los hay
 
-    print("Meses en el DataFrame:", df["month_no"].unique())  
+    print("Meses en el DataFrame:", df["month"].unique())  
     print(f"Datos del año {year}:")
     print(df_filtered)
 
@@ -239,13 +223,48 @@ def plot_delivery_date_difference(df: DataFrame):
 
 
 def plot_order_amount_per_day_with_holidays(df: DataFrame):
-    """Plot order amount per day with holidays
+    """Plot order  amount per day with holidays
 
     Args:
-        df (DataFrame): Dataframe with order amount per day with holidays query result
+        df (DataFrame): Dataframe with order count per day with holidays
     """
-    # TODO: Graficar el monto de pedidos por día con los días festivos usando matplotlib.
-    # Marcar los días festivos con líneas verticales.
-    # Sugerencia: usar plt.axvline.
 
-    raise NotImplementedError
+    # Primero nos Aseguramos de que la columna de fechas esté en formato datetime
+    if not pd.api.types.is_datetime64_any_dtype(df["date"]):
+        df["date"] = pd.to_datetime(df["date"])
+
+    # Luego creamos la figura y el eje
+    fig, ax = plt.subplots(figsize=(14, 7))
+
+    # Despues graficamos la cantidad de pedidos por día - línea verde sin marcadores
+    ax.plot(df["date"], df["order_count"], color="green", linewidth=2)
+
+    # Ahora crearemos una variable para identificar los días festivos
+    holidays = df[df["holiday"] == True]
+
+    # Luego marcamos los días festivos con líneas verticales azules punteadas
+    for holiday_date in holidays["date"]:
+        ax.axvline(x=holiday_date, color="blue", linestyle=":", alpha=0.7)
+
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+
+    # Aqui ajustamos la densidad de las etiquetas de fecha para que las etiquetas de fecha se muestren cada 2 meses
+    ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
+    ax.grid(False)
+
+    # Establecer límites para los ejes
+    ax.set_ylim(bottom=0, top=1200)
+
+    # Quitamos luego el título y etiquetas
+    plt.title("")
+    plt.xlabel("")
+    plt.ylabel("")
+
+    # Luego aplicamos un ajuste al diseño para asegurar que todo sea visible
+    plt.tight_layout()
+
+    # Y finalmente mostramos el gráfico
+    plt.show()
+
+    return fig, ax
+
