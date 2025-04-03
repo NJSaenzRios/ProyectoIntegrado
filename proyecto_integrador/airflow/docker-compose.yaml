@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  airflow-webserver:
+    build:
+      context: C:/Users/fisca/Downloads/Proyecto/proyecto_integrador  # Contexto cambiado a la raíz del proyecto
+      dockerfile: airflow/Dockerfile  # Dockerfile sigue en la carpeta airflow
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - _AIRFLOW_WWW_USER_CREATE=true
+      - _AIRFLOW_WWW_USER_USERNAME=admin
+      - _AIRFLOW_WWW_USER_PASSWORD=admin
+      - _AIRFLOW_WWW_USER_EMAIL=admin@example.com
+      - _AIRFLOW_WWW_USER_FIRSTNAME=Admin
+      - _AIRFLOW_WWW_USER_LASTNAME=User
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - C:/Users/fisca/Downloads/Proyecto/proyecto_integrador/dataset:/dataset:ro  # Dataset accesible en modo solo lectura
+      - C:/Users/fisca/Downloads/Proyecto/proyecto_integrador/src:/opt/airflow/dags/src  # src montado en el contenedor
+      - C:/Users/fisca/Downloads/Proyecto/proyecto_integrador/olist.db:/opt/airflow/olist.db:rw  # Montando la base de datos
+    ports:
+      - "8080:8080"
+    command: ["airflow", "webserver"]
+
+  airflow-scheduler:
+    build:
+      context: C:/Users/fisca/Downloads/Proyecto/proyecto_integrador
+      dockerfile: airflow/Dockerfile
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - C:/Users/fisca/Downloads/Proyecto/proyecto_integrador/dataset:/dataset:ro
+      - C:/Users/fisca/Downloads/Proyecto/proyecto_integrador/src:/opt/airflow/dags/src
+      - C:/Users/fisca/Downloads/Proyecto/proyecto_integrador/olist.db:/opt/airflow/olist.db:rw  # Montando la base de datos
+    command: ["airflow", "scheduler"]
+
+volumes:
+  postgres-db-volume:
